@@ -96,11 +96,6 @@ export interface Post {
 	}
 }
 
-export interface SubJson {
-	kind: string
-	data: Post
-}
-
 export interface Comment {
 	all_awardings: []
 	approved_at_utc: string

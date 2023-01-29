@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, OPT_SORTBY, OPT_SORTDIR, Post, RedditSubs, SortType, SubJson } from './App.props'
+import { OPT_PAGESIZE, OPT_SORTBY, OPT_SORTDIR, Post, RedditSubs, SortType } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
@@ -18,13 +18,15 @@ export default function AppMain() {
 
 	/** fetch subreddit images */
 	useEffect(() => {
+		interface SubJson { kind: string, data: Post }
+
 		setIsLoading(true)
 
 		// FYI: sortType is optional - omit it for default results
 		fetch(`https://www.reddit.com/r/${optSchWord || selRedditSub}/${selSortType}.json`)
 			.then((response) => response.json())
 			.then((json) => {
-				let posts: Post[] = []
+				const posts: Post[] = []
 				json.data.children
 					.filter((child: SubJson) => child && child.data && child.data.preview && child.data.preview.images?.length > 0)
 					.forEach((child: SubJson) => {
