@@ -17,20 +17,22 @@ export enum OPT_PAGESIZE {
 
 // ----------------------------------------------------------------------------
 
-export enum RedditSub {
-	askreddit = 'askreddit',
-	memes = 'memes',
-	politics = 'politics',
+export const RedditSubs = {
+	cityporn: 'CityPorn',
+	itookapicture: 'ITookAPicture',
+	memes: 'memes',
+	pics: 'pics',
 }
 
-export enum SortType {
-	controversial = 'controversial',
-	hot = 'hot',
-	new = 'new',
-	rising = 'rising',
-	top = 'top',
+export const SortType = {
+	controversial: 'controversial',
+	hot: 'hot',
+	new: 'new',
+	rising: 'rising',
+	top: 'top',
 }
 
+// ???
 export enum DelayTime {
 	sec05 = '5',
 	sec10 = '10',
@@ -41,6 +43,21 @@ export enum DelayTime {
 }
 
 // ----------------------------------------------------------------------------
+
+export interface IRedditImage {
+	/**
+	 * @example "https://preview.redd.it/h2h6v8vbkqb61.png?auto=webp&amp;s=57b083b51d7abd838b36829dfdedf136e9cb4c83"
+	 */
+	url: string;
+	/**
+	 * @example 1800
+	 */
+	width: number;
+	/**
+	 * @example 1200
+	 */
+	height: number
+}
 
 export interface Post {
 	subreddit: string // "politics"
@@ -72,8 +89,8 @@ export interface Post {
 	preview?: {
 		images: [
 			{
-				source: { url: string; width: number; height: number }
-				resolutions: { url: string; width: number; height: number }[]
+				source: IRedditImage
+				resolutions: IRedditImage[]
 			}
 		]
 	}

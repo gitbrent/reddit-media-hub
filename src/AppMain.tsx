@@ -1,100 +1,80 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { DelayTime, OPT_PAGESIZE, OPT_SORTBY, OPT_SORTDIR, Post, RedditSub, SortType, SubJson } from './App.props'
+import { OPT_PAGESIZE, OPT_SORTBY, OPT_SORTDIR, Post, RedditSubs, SortType, SubJson } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
 	const [pagingSize, setPagingSize] = useState(12)
-	const [pagingPage, setPagingPage] = useState(0)
+	const [pagingPage, setPagingPage] = useState(1)
 	const [optSortBy, setOptSortBy] = useState(OPT_SORTBY.modDate)
 	const [optSortDir, setOptSortDir] = useState(OPT_SORTDIR.desc)
 	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps12)
 	const [optSchWord, setOptSchWord] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	//
-	const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
-	const [selRedditSub, setSelRedditSub] = useState<RedditSub | string>(RedditSub.memes)
-	const [selSortType, setSelSortType] = useState<SortType | string>(SortType.top)
-	const [showFiles, setShowFiles] = useState<Post[]>([])
+	//const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
+	const [selRedditSub, setSelRedditSub] = useState<string>(RedditSubs.memes)
+	const [selSortType, setSelSortType] = useState<string>(SortType.top)
 	const [posts, setPosts] = useState<Post[]>([])
 
+	/** fetch subreddit images */
 	useEffect(() => {
-		console.log(posts);
-	}, [posts])
+		setIsLoading(true)
+
+		// FYI: sortType is optional - omit it for default results
+		fetch(`https://www.reddit.com/r/${optSchWord || selRedditSub}/${selSortType}.json`)
+			.then((response) => response.json())
+			.then((json) => {
+				let posts: Post[] = []
+				json.data.children
+					.filter((child: SubJson) => child && child.data && child.data.preview && child.data.preview.images?.length > 0)
+					.forEach((child: SubJson) => {
+						posts.push({
+							subreddit: child.data.subreddit,
+							subreddit_subscribers: child.data.subreddit_subscribers,
+							selftext: child.data.selftext,
+							title: (child.data.title || '').replace(/&amp;/gi, '&'),
+							permalink: child.data.permalink,
+							link_flair_text: child.data.link_flair_text,
+							thumbnail: child.data.thumbnail,
+							url: child.data.url,
+							id: child.data.id,
+							num_comments: child.data.num_comments,
+							ups: child.data.ups,
+							downs: child.data.downs,
+							over_18: child.data.over_18,
+							score: child.data.score,
+							pinned: child.data.pinned,
+							preview: child.data.preview,
+							created: child.data.created,
+							created_utc: child.data.created_utc,
+							dateCreated: new Date(child.data.created * 1000),
+							author: child.data.author,
+						})
+					})
+				setPosts(posts)
+			})
+			.catch((ex) => {
+				console.error(ex)
+			})
+			.finally(() => {
+				setIsLoading(false)
+			})
+		// TODO: rule below is only until we add useDelay hook (or whatever) to implement `optSchWord`!
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selRedditSub, selSortType, optPgeSize])
 
 	useEffect(() => {
 		if (optPgeSize === OPT_PAGESIZE.ps08) setPagingSize(8)
 		else if (optPgeSize === OPT_PAGESIZE.ps12) setPagingSize(12)
 		else if (optPgeSize === OPT_PAGESIZE.ps24) setPagingSize(24)
 		else if (optPgeSize === OPT_PAGESIZE.ps48) setPagingSize(48)
-
-		fetchData();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [optPgeSize])
 
-	/* // TODO:
-	useEffect(() => {
-		showFiles.filter((file) => !file.imageBlobUrl).forEach((file: IGapiFile) => { downloadFile(file.id) })
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [pagingPage, pagingSize, optSchWord])
-
 	const showFiles = useMemo(() => {
-		const sorter = (a: IGapiFile, b: IGapiFile) => {
-			if (optSortBy === OPT_SORTBY.filName) {
-				return a.name < b.name ? (optSortDir === OPT_SORTDIR.asc ? -1 : 1) : (optSortDir === OPT_SORTDIR.asc ? 1 : -1)
-			}
-			else if (optSortBy === OPT_SORTBY.modDate) {
-				return a.modifiedTime < b.modifiedTime ? (optSortDir === OPT_SORTDIR.asc ? -1 : 1) : (optSortDir === OPT_SORTDIR.asc ? 1 : -1)
-			}
-			else {
-				console.error('unknown OPT_SORTBY value')
-				return 1
-			}
-		}
-
-		return gapiFiles
-			.sort(sorter)
-			.filter((item)=>{ return !optSchWord || item.name.toLowerCase().indexOf(optSchWord.toLowerCase()) > -1 })
+		return posts
+			//.filter((item)=>{ return !optSchWord || item.name.toLowerCase().indexOf(optSchWord.toLowerCase()) > -1 }) // FUTURE: suport searches
 			.filter((_item, idx) => { return idx >= ((pagingPage - 1) * pagingSize) && idx <= ((pagingPage * pagingSize) - 1) })
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [gapiFiles, pagingPage, pagingSize, optSortBy, optSortDir, updated, optSchWord])
-	*/
-
-	// --------------------------------------------------------------------------------------------
-
-	function fetchData() {
-		// FYI: sortType is optional - omit it for default results
-		fetch(`https://www.reddit.com/r/${selRedditSub}/${selSortType}.json`)
-			.then((response) => response.json())
-			.then((json) => {
-				let posts: Post[] = []
-				json.data.children.forEach((child: SubJson) => {
-					posts.push({
-						subreddit: child.data.subreddit,
-						subreddit_subscribers: child.data.subreddit_subscribers,
-						selftext: child.data.selftext,
-						title: (child.data.title || '').replace(/&amp;/gi, '&'),
-						permalink: child.data.permalink,
-						link_flair_text: child.data.link_flair_text,
-						thumbnail: child.data.thumbnail,
-						url: child.data.url,
-						id: child.data.id,
-						num_comments: child.data.num_comments,
-						ups: child.data.ups,
-						downs: child.data.downs,
-						over_18: child.data.over_18,
-						score: child.data.score,
-						pinned: child.data.pinned,
-						//preview: child.data.preview,
-						created: child.data.created,
-						created_utc: child.data.created_utc,
-						dateCreated: new Date(child.data.created * 1000),
-						author: child.data.author,
-					})
-				})
-				setPosts(posts)
-				setShowFiles(posts)
-			})
-	}
+	}, [posts, pagingPage, pagingSize])
 
 	// --------------------------------------------------------------------------------------------
 
@@ -111,9 +91,9 @@ export default function AppMain() {
 
 		return (
 			<nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-				<div className="container-fluid">
+				<div className="container-fluid px-0">
 					<a className="navbar-brand" href="/">
-						<img src="/google-drive.png" alt="Google Drive Media Hub" width="32" height="32" />
+						<img src="/reddit.png" alt="Google Drive Media Hub" width="32" height="32" />
 					</a>
 					<div className='d-lg-none'>{renderPrevNext()}</div>
 					<button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -124,25 +104,24 @@ export default function AppMain() {
 							<li className="nav-item">
 								<a className="nav-link active" aria-current="page" href="/">Home</a>
 							</li>
-							<li className="nav-item dropdown" data-desc="opt-pagesize">
-								{/* TODO:
-									<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Media</a>
-									<ul className="dropdown-menu">
-										<li>images</button></li>
-										<li>Video</button></li>
-									</ul>
-								*/}
+							<li className="nav-item dropdown" data-desc="opt-subreddit">
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Subreddit</a>
+								<ul className="dropdown-menu">
+									{Object.keys(RedditSubs).map((subName, idx) => {
+										return (<li key={`sub${idx}`}>
+											<button className="dropdown-item" disabled={selRedditSub === subName} onClick={() => setSelRedditSub(subName)}>{subName}</button>
+										</li>)
+									})}
+								</ul>
 							</li>
 							<li className="nav-item dropdown" data-desc="opt-sortby">
 								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sorting</a>
 								<ul className="dropdown-menu">
-									<li><h6 className="dropdown-header">Sort By</h6></li>
-									<li><button className="dropdown-item" disabled={optSortBy === OPT_SORTBY.modDate} onClick={() => setOptSortBy(OPT_SORTBY.modDate)}>{OPT_SORTBY.modDate}</button></li>
-									<li><button className="dropdown-item" disabled={optSortBy === OPT_SORTBY.filName} onClick={() => setOptSortBy(OPT_SORTBY.filName)}>{OPT_SORTBY.filName}</button></li>
-									<li><hr className="dropdown-divider" /></li>
-									<li><h6 className="dropdown-header">Sort Direction</h6></li>
-									<li><button className="dropdown-item" disabled={optSortDir === OPT_SORTDIR.asc} onClick={() => setOptSortDir(OPT_SORTDIR.asc)}>{OPT_SORTDIR.asc}</button></li>
-									<li><button className="dropdown-item" disabled={optSortDir === OPT_SORTDIR.desc} onClick={() => setOptSortDir(OPT_SORTDIR.desc)}>{OPT_SORTDIR.desc}</button></li>
+									{Object.keys(SortType).map((sortName, idx) => {
+										return (<li key={`sort${idx}`}>
+											<button className="dropdown-item" disabled={selSortType === sortName} onClick={() => setSelSortType(sortName)}>{sortName}</button>
+										</li>)
+									})}
 								</ul>
 							</li>
 							<li className="nav-item dropdown" data-desc="opt-pagesize">
