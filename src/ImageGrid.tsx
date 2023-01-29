@@ -9,6 +9,8 @@ interface IProps {
 	showFiles: Post[]
 }
 
+// TODO: use preview image for thumb, then full URL for lightbox
+
 export default function ImageGrid(props: IProps) {
 	const images: CustomImage[] = useMemo(() => {
 		const showImages: CustomImage[] = []
@@ -17,12 +19,10 @@ export default function ImageGrid(props: IProps) {
 			showImages.push({
 				src: file.url || '/spinner750.png',
 				original: file.url || '/spinner750.png',
-				/*tags: [
-					{ value: 'Nature', title: 'Nature' },
-				],*/
+				//tags: [{ value: 'Nature', title: 'Nature' }],
 				width: 0 || 750,
 				height: 0 || 750,
-				caption: file.title || 'loading',
+				caption: `${file.title} (${file.ups} upvotes)` || 'loading',
 			})
 		})
 		//console.log('DEBUG:showImages', showImages)
