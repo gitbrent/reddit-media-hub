@@ -1,1 +1,17 @@
+### env vars (API Keys, etc.)
+.env
+### MacOS
+.DS_Store
+.icloud
+*.icloud
+### Node
 node_modules
+bower_components
+npm-debug.log
+/.idea
+### Data
+src/data/*.json
+z.admin.local.tsx
+firebase-debug.log
+###
+build
