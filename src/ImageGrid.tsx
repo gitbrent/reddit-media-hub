@@ -9,7 +9,7 @@ interface IProps {
 	showFiles: Post[]
 }
 
-export default function ImageGrid(props:IProps) {
+export default function ImageGrid(props: IProps) {
 	const images: CustomImage[] = useMemo(() => {
 		const showImages: CustomImage[] = []
 
@@ -55,10 +55,10 @@ export default function ImageGrid(props:IProps) {
 				onClick={handleClick}
 				enableImageSelection={false}
 			/>
-			{!images || images.length === 0 &&
+			{(!images || images.length === 0) &&
 				<section className='bg-secondary my-5'>
 					<div className='row row-cols-auto justify-content-center align-items-center'>
-						<div className='col'><span style={{ fontSize:'3rem' }}>&#9888;</span></div>
+						<div className='col'><span style={{ fontSize: '3rem' }}>&#9888;</span></div>
 						<div className='col'>(no images to display)</div>
 					</div>
 				</section>
