@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, /*OPT_SORTBY, OPT_SORTDIR,*/ IRedditPost, RedditSubs, SortType } from './App.props'
+import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
 	const [pagingSize, setPagingSize] = useState(12)
 	const [pagingPage, setPagingPage] = useState(1)
-	//const [optSortBy, setOptSortBy] = useState(OPT_SORTBY.modDate)
-	//const [optSortDir, setOptSortDir] = useState(OPT_SORTDIR.desc)
-	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps12)
+	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps16)
 	const [optSchWord, setOptSchWord] = useState('')
 	const [optShowCap, setOptShowCap] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
@@ -23,13 +21,22 @@ export default function AppMain() {
 
 		setIsLoading(true)
 
-		// FYI: sortType is optional - omit it for default results
-		fetch(`https://www.reddit.com/r/${optSchWord || selRedditSub}/${selSortType}.json`)
+		/**
+		 * @note paging/result sets
+		 * http://www.reddit.com/r/pics/.json?limit=100
+		 * If you want more than that, look at the after parameter in the JSON that comes back, and call it again with that, like this:
+		 * http://www.reddit.com/r/pics/.json?limit=100&after=t3_abcde
+		 *
+		 * @note `sortType` is optional (omit it for default sort [top])
+		 */
+		fetch(`https://www.reddit.com/r/${selRedditSub}/${selSortType}.json?limit=50`)
 			.then((response) => response.json())
 			.then((json) => {
 				const posts: IRedditPost[] = []
+
 				json.data.children
 					.filter((child: SubJson) => child && child.data && child.data.preview && child.data.preview.images?.length > 0)
+					.filter((child: SubJson) => child.data.url.indexOf('https://v.redd.it') !== 0)
 					.forEach((child: SubJson) => {
 						posts.push({
 							subreddit: child.data.subreddit,
@@ -64,13 +71,11 @@ export default function AppMain() {
 			.finally(() => {
 				setIsLoading(false)
 			})
-		// TODO: rule below is only until we add useDelay hook (or whatever) to implement `optSchWord`!
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selRedditSub, selSortType, optPgeSize])
+	}, [selRedditSub, selSortType])
 
 	useEffect(() => {
 		if (optPgeSize === OPT_PAGESIZE.ps08) setPagingSize(8)
-		else if (optPgeSize === OPT_PAGESIZE.ps12) setPagingSize(12)
+		else if (optPgeSize === OPT_PAGESIZE.ps16) setPagingSize(16)
 		else if (optPgeSize === OPT_PAGESIZE.ps24) setPagingSize(24)
 		else if (optPgeSize === OPT_PAGESIZE.ps48) setPagingSize(48)
 	}, [optPgeSize])
@@ -133,7 +138,7 @@ export default function AppMain() {
 								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Paging</a>
 								<ul className="dropdown-menu">
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps08} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps08)}>{OPT_PAGESIZE.ps08}</button></li>
-									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps12} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps12)}>{OPT_PAGESIZE.ps12}</button></li>
+									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps16} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps16)}>{OPT_PAGESIZE.ps16}</button></li>
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps24} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps24)}>{OPT_PAGESIZE.ps24}</button></li>
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps48} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps48)}>{OPT_PAGESIZE.ps48}</button></li>
 								</ul>
@@ -147,6 +152,7 @@ export default function AppMain() {
 						<div className='d-none d-lg-block'>{renderPrevNext()}</div>
 						<form className="d-flex" role="search">
 							<input className="form-control" type="search" placeholder="Search" aria-label="Search" onChange={(ev) => { setOptSchWord(ev.currentTarget.value) }} />
+							<button type="button" onClick={() => setSelRedditSub(optSchWord)}>GO!</button>
 						</form>
 						<ul className="navbar-nav flex-row flex-wrap ms-md-auto">
 							<li className="nav-item d-none d-lg-block col-6 col-lg-auto">

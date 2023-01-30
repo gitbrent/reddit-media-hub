@@ -1,16 +1,6 @@
-export enum OPT_SORTBY {
-	modDate = 'Modified Date',
-	filName = 'File Name'
-}
-
-export enum OPT_SORTDIR {
-	asc = 'Ascending',
-	desc = 'Descinding'
-}
-
 export enum OPT_PAGESIZE {
 	ps08 = '8 items',
-	ps12 = '12 items',
+	ps16 = '16 items',
 	ps24 = '24 items',
 	ps48 = '48 items',
 }

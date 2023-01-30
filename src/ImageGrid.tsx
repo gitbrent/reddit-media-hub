@@ -59,6 +59,7 @@ export default function ImageGrid(props: IProps) {
 							onClick={open}
 							src={item.thumbnail}
 							alt={item.alt}
+							data-orig={item.original}
 							style={item.imgStyle}
 						/>
 					)}
