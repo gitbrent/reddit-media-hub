@@ -1,84 +1,71 @@
-import React, { useState, useMemo } from 'react'
-import { Post } from './App.props'
-import { CustomImage } from './ImageGrid.props'
-import { Gallery } from 'react-grid-gallery'
-import Lightbox from 'react-18-image-lightbox'
-import 'react-image-lightbox/style.css'
+import React, { useMemo } from 'react'
+import { IRedditPost } from './App.props'
+import { FixedItemProps } from './ImageGrid.props'
+import { Gallery, Item } from 'react-photoswipe-gallery'
+import 'photoswipe/dist/photoswipe.css'
 
 interface IProps {
-	showFiles: Post[]
+	imagePosts: IRedditPost[]
+	isShowCap: boolean
 }
 
-// TODO: use preview image for thumb, then full URL for lightbox
-
 export default function ImageGrid(props: IProps) {
-	const images: CustomImage[] = useMemo(() => {
-		const showImages: CustomImage[] = []
+	const THUMB_SIZE = 140;
 
-		props.showFiles.forEach((file) => {
+	const galleryItems: FixedItemProps[] = useMemo(() => {
+		const landCssProps: React.CSSProperties = {
+			cursor: 'pointer',
+			objectFit: 'cover',
+			maxWidth: '100%',
+			height: '100%',
+		}
+		const showImages: FixedItemProps[] = []
+
+		props.imagePosts.forEach((post) => {
+			let imgPrevUrl = post.thumbnail
+			let imgOrigUrl = post.url
+			let imgW = THUMB_SIZE
+			let imgH = THUMB_SIZE
+
+			if (post?.preview?.images[0]?.source) {
+				const source = post.preview.images[0].source
+				imgW = source.width
+				imgH = source.height
+			}
+
+			// TODO: do we need loading image? src: file.url || '/spinner750.png',
+
 			showImages.push({
-				src: file.url || '/spinner750.png',
-				original: file.url || '/spinner750.png',
-				//tags: [{ value: 'Nature', title: 'Nature' }],
-				width: 0 || 750,
-				height: 0 || 750,
-				caption: `${file.title} (${file.ups} upvotes)` || 'loading',
+				id: post.id,
+				caption: `${post.title} (${post.ups} upvotes)` || '(loading)',
+				original: imgOrigUrl,
+				thumbnail: imgPrevUrl,
+				width: imgW,
+				height: imgH,
+				imgStyle: post.thumbnail_height < THUMB_SIZE ? landCssProps : { cursor: 'pointer' },
+				cropped: false, // TODO: add option [[doesnt seem to do anything?]]
 			})
 		})
-		//console.log('DEBUG:showImages', showImages)
 
 		return showImages
-	}, [props.showFiles])
+	}, [props.imagePosts])
 
-	const [photoIndex, setPhotoIndex] = useState(-1)
-	const [isOpen, setIsOpen] = useState(false)
-
-	//const currentImage = useMemo(() => { return images[photoIndex] }, [photoIndex]) // stil comes up empty on first click
-	const currentImage = images[photoIndex]
-	const nextIndex = (photoIndex + 1) % images.length
-	const nextImage = images[nextIndex] || currentImage
-	const prevIndex = (photoIndex + images.length - 1) % images.length
-	const prevImage = images[prevIndex] || currentImage
-
-	const handleClick = (index: number) => {
-		setPhotoIndex(index)
-		setIsOpen(true)
-	}
-	const handleClose = () => setIsOpen(false)
-	const handleMovePrev = () => setPhotoIndex(prevIndex)
-	const handleMoveNext = () => setPhotoIndex(nextIndex)
-
-	return (
-		<div>
-			<Gallery
-				images={images}
-				onClick={handleClick}
-				enableImageSelection={false}
-			/>
-			{(!images || images.length === 0) &&
-				<section className='bg-secondary my-5'>
-					<div className='row row-cols-auto justify-content-center align-items-center'>
-						<div className='col'><span style={{ fontSize: '3rem' }}>&#9888;</span></div>
-						<div className='col'>(no images to display)</div>
-					</div>
-				</section>
-			}
-			{isOpen && currentImage && (
-				<Lightbox
-					mainSrc={currentImage.original}
-					imageTitle={currentImage.caption}
-					mainSrcThumbnail={currentImage.src}
-					nextSrc={nextImage.original}
-					nextSrcThumbnail={nextImage.src}
-					prevSrc={prevImage.original}
-					prevSrcThumbnail={prevImage.src}
-					onCloseRequest={handleClose}
-					onMovePrevRequest={handleMovePrev}
-					onMoveNextRequest={handleMoveNext}
-					clickOutsideToClose={true}
-					reactModalStyle={{ overlay: { zIndex: 10000 } }} // cover bootstrap navbar
-				/>
-			)}
-		</div>
-	)
+	return galleryItems && galleryItems.length > 0 ? (
+		<Gallery id="galleryItems" withCaption={props.isShowCap}>
+			<div style={{ display: 'grid', gridGap: '1rem', gridTemplateColumns: `repeat(auto-fit, ${THUMB_SIZE}px)`, }}			>
+				{galleryItems.map((item) => (<Item {...item} key={item.id}>
+					{({ ref, open }) => (
+						<img ref={ref as React.MutableRefObject<HTMLImageElement>}
+							onClick={open}
+							src={item.thumbnail}
+							alt={item.alt}
+							style={item.imgStyle}
+						/>
+					)}
+				</Item>
+				))}
+			</div>
+		</Gallery>
+	) :
+		(<div className='alter alert-info'>(no images to display)</div>)
 }

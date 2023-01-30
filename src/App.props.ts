@@ -15,6 +15,8 @@ export enum OPT_PAGESIZE {
 	ps48 = '48 items',
 }
 
+// gridGap: '1rem', MED (LG = 2rem, 0=0)
+
 // ----------------------------------------------------------------------------
 
 export const RedditSubs = {
@@ -44,7 +46,7 @@ export enum DelayTime {
 
 // ----------------------------------------------------------------------------
 
-export interface IRedditImage {
+export interface IRedditPreviewImage {
 	/**
 	 * @example "https://preview.redd.it/h2h6v8vbkqb61.png?auto=webp&amp;s=57b083b51d7abd838b36829dfdedf136e9cb4c83"
 	 */
@@ -59,7 +61,7 @@ export interface IRedditImage {
 	height: number
 }
 
-export interface Post {
+export interface IRedditPost {
 	subreddit: string // "politics"
 	subreddit_subscribers: number
 	title: string // "Discussion Thread: White House Coronavirus Task Force Briefing"
@@ -67,6 +69,8 @@ export interface Post {
 	permalink: string // "/r/politics/comments/fw07am/rudy_giuliani_attempts_to_position_himself_as/"
 	link_flair_text: string // "serious replies only"
 	thumbnail: string // "https://a.thumbs.redditmedia.com/nf-fkqLeJ53JAM94pCl7ZzklRzSU8eYoRoE4XYKbkG8.jpg"
+	thumbnail_height: number // 140
+	thumbnail_width: number // 140
 	/**
 	 * url
 	 * - image posts from "memes"
@@ -89,14 +93,14 @@ export interface Post {
 	preview?: {
 		images: [
 			{
-				source: IRedditImage
-				resolutions: IRedditImage[]
+				source: IRedditPreviewImage
+				resolutions: IRedditPreviewImage[]
 			}
 		]
 	}
 }
 
-export interface Comment {
+export interface IRedditComment {
 	all_awardings: []
 	approved_at_utc: string
 	approved_by: string
@@ -150,7 +154,7 @@ export interface Comment {
 	parent_id: string
 	permalink: string
 	removal_reason: string
-	replies: { data: { children: { data: Comment }[] } }
+	replies: { data: { children: { data: IRedditComment }[] } }
 	/*
 	replies: {kind: "Listing",…}
 		data: {modhash: "", dist: null, children: [{kind: "t1",…}, {kind: "t1",…}, {kind: "t1",…}, {kind: "more",…}],…}

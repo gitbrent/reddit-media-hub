@@ -1,24 +1,25 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, OPT_SORTBY, OPT_SORTDIR, Post, RedditSubs, SortType } from './App.props'
+import { OPT_PAGESIZE, /*OPT_SORTBY, OPT_SORTDIR,*/ IRedditPost, RedditSubs, SortType } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
 	const [pagingSize, setPagingSize] = useState(12)
 	const [pagingPage, setPagingPage] = useState(1)
-	const [optSortBy, setOptSortBy] = useState(OPT_SORTBY.modDate)
-	const [optSortDir, setOptSortDir] = useState(OPT_SORTDIR.desc)
+	//const [optSortBy, setOptSortBy] = useState(OPT_SORTBY.modDate)
+	//const [optSortDir, setOptSortDir] = useState(OPT_SORTDIR.desc)
 	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps12)
 	const [optSchWord, setOptSchWord] = useState('')
+	const [optShowCap, setOptShowCap] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	//
 	//const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
 	const [selRedditSub, setSelRedditSub] = useState<string>(RedditSubs.memes)
 	const [selSortType, setSelSortType] = useState<string>(SortType.top)
-	const [posts, setPosts] = useState<Post[]>([])
+	const [posts, setPosts] = useState<IRedditPost[]>([])
 
 	/** fetch subreddit images */
 	useEffect(() => {
-		interface SubJson { kind: string, data: Post }
+		interface SubJson { kind: string, data: IRedditPost }
 
 		setIsLoading(true)
 
@@ -26,7 +27,7 @@ export default function AppMain() {
 		fetch(`https://www.reddit.com/r/${optSchWord || selRedditSub}/${selSortType}.json`)
 			.then((response) => response.json())
 			.then((json) => {
-				const posts: Post[] = []
+				const posts: IRedditPost[] = []
 				json.data.children
 					.filter((child: SubJson) => child && child.data && child.data.preview && child.data.preview.images?.length > 0)
 					.forEach((child: SubJson) => {
@@ -38,6 +39,8 @@ export default function AppMain() {
 							permalink: child.data.permalink,
 							link_flair_text: child.data.link_flair_text,
 							thumbnail: child.data.thumbnail,
+							thumbnail_height: child.data.thumbnail_height,
+							thumbnail_width: child.data.thumbnail_width,
 							url: child.data.url,
 							id: child.data.id,
 							num_comments: child.data.num_comments,
@@ -93,7 +96,7 @@ export default function AppMain() {
 
 		return (
 			<nav className="navbar navbar-expand-lg navbar-dark bg-primary">
-				<div className="container-fluid px-0">
+				<div className="container-fluid">
 					<a className="navbar-brand" href="/">
 						<img src="/reddit.png" alt="Google Drive Media Hub" width="32" height="32" />
 					</a>
@@ -190,18 +193,16 @@ export default function AppMain() {
 			<header>
 				{renderNavbar()}
 			</header>
-			<main>
-				<div>
+			<main className='mt-3'>
+				<section>
 					{isLoading ?
-						<section>
-							<div className='text-center bg-dark p-3'>
-								<div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
-							</div>
-						</section>
+						<div className='text-center bg-dark p-3'>
+							<div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
+						</div>
 						:
-						<ImageGrid showFiles={showFiles} />
+						<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
 					}
-				</div>
+				</section>
 			</main>
 		</div>
 	)
