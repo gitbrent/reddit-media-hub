@@ -1,7 +1,5 @@
 // FIXES import { ItemProps } from 'react-photoswipe-gallery'
 export interface FixedItemProps {
-	/** CUSTOM (Brent) */
-	imgStyle?: React.CSSProperties
 	/**
 	 * Url of original image
 	 */

@@ -2,6 +2,13 @@
   "name": "reddit-media-hub",
   "version": "1.0.0-beta1",
   "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy": "react-scripts build && firebase deploy"
+  },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
     "@testing-library/jest-dom": "^5.16.5",
@@ -21,12 +28,6 @@
     "react-photoswipe-gallery": "^2.2.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^3.1.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [

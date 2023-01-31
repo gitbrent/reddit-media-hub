@@ -1,19 +1,23 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType } from './App.props'
+import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType, IRedditImage } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
+	//const thumbSizes = {  } // TODO: we need to pass to ImageGrid for css max etc
 	const [pagingSize, setPagingSize] = useState(12)
 	const [pagingPage, setPagingPage] = useState(1)
 	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps16)
 	const [optSchWord, setOptSchWord] = useState('')
 	const [optShowCap, setOptShowCap] = useState(false)
+	const [optThumbSize, setOptThumbSize] = useState(1)
 	const [isLoading, setIsLoading] = useState(false)
+	const [showDataDebug, setShowDataDebug] = useState(false)
 	//
 	//const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
 	const [selRedditSub, setSelRedditSub] = useState<string>(RedditSubs.memes)
 	const [selSortType, setSelSortType] = useState<string>(SortType.top)
-	const [posts, setPosts] = useState<IRedditPost[]>([])
+	const [redditImages, setRedditImages] = useState<IRedditImage[]>([])
 
 	/** fetch subreddit images */
 	useEffect(() => {
@@ -32,38 +36,61 @@ export default function AppMain() {
 		fetch(`https://www.reddit.com/r/${selRedditSub}/${selSortType}.json?limit=50`)
 			.then((response) => response.json())
 			.then((json) => {
-				const posts: IRedditPost[] = []
+				const posts: IRedditImage[] = []
 
 				json.data.children
 					.filter((child: SubJson) => child && child.data && child.data.preview && child.data.preview.images?.length > 0)
 					.filter((child: SubJson) => child.data.url.indexOf('https://v.redd.it') !== 0)
 					.forEach((child: SubJson) => {
+						const redditPost = child.data
+						let thumbUrl = redditPost.thumbnail === "nsfw" ? redditPost.url : redditPost.thumbnail
+						let thumbHeight = redditPost.thumbnail_height
+						let thumbWidth = redditPost.thumbnail_width
+						let origUrl = redditPost.url
+						let origHeight = redditPost.thumbnail_height
+						let origWidth = redditPost.thumbnail_width
+
+						if (redditPost.preview?.images[0]?.source) {
+							origWidth = redditPost.preview.images[0].source.width
+							origHeight = redditPost.preview.images[0].source.height
+						}
+
 						posts.push({
-							subreddit: child.data.subreddit,
-							subreddit_subscribers: child.data.subreddit_subscribers,
-							selftext: child.data.selftext,
-							title: (child.data.title || '').replace(/&amp;/gi, '&'),
-							permalink: child.data.permalink,
-							link_flair_text: child.data.link_flair_text,
-							thumbnail: child.data.thumbnail,
-							thumbnail_height: child.data.thumbnail_height,
-							thumbnail_width: child.data.thumbnail_width,
-							url: child.data.url,
-							id: child.data.id,
-							num_comments: child.data.num_comments,
-							ups: child.data.ups,
-							downs: child.data.downs,
-							over_18: child.data.over_18,
-							score: child.data.score,
-							pinned: child.data.pinned,
-							preview: child.data.preview,
-							created: child.data.created,
-							created_utc: child.data.created_utc,
-							dateCreated: new Date(child.data.created * 1000),
-							author: child.data.author,
+							subreddit: redditPost.subreddit,
+							subreddit_subscribers: redditPost.subreddit_subscribers,
+							selftext: redditPost.selftext,
+							title: (redditPost.title || '').replace(/&amp;/gi, '&'),
+							permalink: redditPost.permalink,
+							link_flair_text: redditPost.link_flair_text,
+							thumbnail: thumbUrl,
+							thumbnail_height: thumbHeight,
+							thumbnail_width: thumbWidth,
+							url: redditPost.url,
+							id: redditPost.id,
+							num_comments: redditPost.num_comments,
+							ups: redditPost.ups,
+							downs: redditPost.downs,
+							over_18: redditPost.over_18,
+							score: redditPost.score,
+							pinned: redditPost.pinned,
+							preview: redditPost.preview,
+							created: redditPost.created,
+							created_utc: redditPost.created_utc,
+							dateCreated: new Date(redditPost.created * 1000),
+							author: redditPost.author,
+							//
+							galleryThumbUrl: thumbUrl,
+							galleryThumbW: thumbWidth,
+							galleryThumbH: thumbHeight,
+							galleryOrigUrl: origUrl,
+							galleryOrigW: origWidth,
+							galleryOrigH: origHeight,
 						})
+
+						console.log('thumbWidth', thumbWidth);
+
 					})
-				setPosts(posts)
+				setRedditImages(posts)
 			})
 			.catch((ex) => {
 				console.error(ex)
@@ -81,10 +108,21 @@ export default function AppMain() {
 	}, [optPgeSize])
 
 	const showFiles = useMemo(() => {
-		return posts
+		return redditImages
 			//.filter((item)=>{ return !optSchWord || item.name.toLowerCase().indexOf(optSchWord.toLowerCase()) > -1 }) // FUTURE: suport searches
 			.filter((_item, idx) => { return idx >= ((pagingPage - 1) * pagingSize) && idx <= ((pagingPage * pagingSize) - 1) })
-	}, [posts, pagingPage, pagingSize])
+			.map((item) => {
+				if (item.preview?.images[0]?.resolutions) {
+					if (item.preview.images[0].resolutions.length >= optThumbSize) {
+						const resLevel = item.preview.images[0].resolutions[optThumbSize]
+						item.galleryThumbUrl = resLevel.url.replace(/&amp;/gi, '&')
+						item.galleryThumbH = resLevel.height
+						item.galleryThumbW = resLevel.width
+					}
+				}
+				return item
+			})
+	}, [redditImages, pagingPage, pagingSize, optThumbSize])
 
 	// --------------------------------------------------------------------------------------------
 
@@ -94,13 +132,13 @@ export default function AppMain() {
 			// TODO: disabled={pagingPage<(showFiles.length > (pagingSize+1))}
 
 			return (<form className="d-flex me-0 me-lg-5">
-				<button className="btn btn-info me-2" type="button" onClick={() => { setPagingPage(pagingPage > 1 ? pagingPage - 1 : 1) }} disabled={pagingPage < 2}>Prev</button>
-				<button className="btn btn-info" type="button" onClick={() => { setPagingPage(pagingPage + 1) }} disabled={isDisabledNext}>Next</button>
+				<button className="btn btn-primary me-2" type="button" onClick={() => { setPagingPage(pagingPage > 1 ? pagingPage - 1 : 1) }} disabled={pagingPage < 2}>Prev</button>
+				<button className="btn btn-primary me-0" type="button" onClick={() => { setPagingPage(pagingPage + 1) }} disabled={isDisabledNext}>Next</button>
 			</form>)
 		}
 
 		return (
-			<nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+			<nav className="navbar navbar-expand-lg navbar-dark bg-dark">
 				<div className="container-fluid">
 					<a className="navbar-brand" href="/">
 						<img src="/reddit.png" alt="Google Drive Media Hub" width="32" height="32" />
@@ -115,17 +153,17 @@ export default function AppMain() {
 								<a className="nav-link active" aria-current="page" href="/">Home</a>
 							</li>
 							<li className="nav-item dropdown" data-desc="opt-subreddit">
-								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Subreddit</a>
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">r/{selRedditSub}</a>
 								<ul className="dropdown-menu">
 									{Object.keys(RedditSubs).map((subName, idx) => {
 										return (<li key={`sub${idx}`}>
-											<button className="dropdown-item" disabled={selRedditSub === subName} onClick={() => setSelRedditSub(subName)}>{subName}</button>
+											<button className="dropdown-item" disabled={selRedditSub === subName} onClick={() => setSelRedditSub(subName)}>r/{subName}</button>
 										</li>)
 									})}
 								</ul>
 							</li>
 							<li className="nav-item dropdown" data-desc="opt-sortby">
-								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Sorting</a>
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{selSortType}</a>
 								<ul className="dropdown-menu">
 									{Object.keys(SortType).map((sortName, idx) => {
 										return (<li key={`sort${idx}`}>
@@ -135,7 +173,7 @@ export default function AppMain() {
 								</ul>
 							</li>
 							<li className="nav-item dropdown" data-desc="opt-pagesize">
-								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Paging</a>
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{optPgeSize}</a>
 								<ul className="dropdown-menu">
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps08} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps08)}>{OPT_PAGESIZE.ps08}</button></li>
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps16} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps16)}>{OPT_PAGESIZE.ps16}</button></li>
@@ -143,16 +181,25 @@ export default function AppMain() {
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps48} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps48)}>{OPT_PAGESIZE.ps48}</button></li>
 								</ul>
 							</li>
+							{document.location.hostname === 'localhost' &&
+								<li className="nav-item dropdown" data-desc="opt-debug">
+									<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">DEBUG</a>
+									<ul className="dropdown-menu">
+										<li><h6 className="dropdown-header">Reddit API</h6></li>
+										<li><button className="dropdown-item" disabled={true}>Total Posts: {redditImages.length}</button></li>
+										<li><hr className="dropdown-divider" /></li>
+										<li><h6 className="dropdown-header">App Data</h6></li>
+										<li><button className="dropdown-item" disabled={true}>Showing (pagesize): {showFiles.length}</button></li>
+										<li><hr className="dropdown-divider" /></li>
+										<li><button className="dropdown-item" onClick={() => setShowDataDebug(true)}>Show Data</button></li>
+									</ul>
+								</li>
+							}
 						</ul>
-						{document.location.hostname === 'localhost' &&
-							<div className="d-flex d-none d-xl-block me-5" data-desc="debug-badges">
-								<div className='badge text-bg-secondary'>Showing {showFiles.length} of {posts.length}</div>
-							</div>
-						}
 						<div className='d-none d-lg-block'>{renderPrevNext()}</div>
 						<form className="d-flex" role="search">
 							<input className="form-control" type="search" placeholder="Search" aria-label="Search" onChange={(ev) => { setOptSchWord(ev.currentTarget.value) }} />
-							<button type="button" onClick={() => setSelRedditSub(optSchWord)}>GO!</button>
+							<button type="button" className="btn btn-secondary ms-1" onClick={() => setSelRedditSub(optSchWord)}>GO!</button>
 						</form>
 						<ul className="navbar-nav flex-row flex-wrap ms-md-auto">
 							<li className="nav-item d-none d-lg-block col-6 col-lg-auto">
@@ -206,7 +253,19 @@ export default function AppMain() {
 							<div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
 						</div>
 						:
-						<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
+						<div className='row'>
+							<div className='col'>
+								<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
+							</div>
+							{showDataDebug && <div className='col'>
+								<div className='row align-items-center'>
+									<div className='col'><h6 className='mb-0'>reddit post object</h6></div>
+									<div className='col-auto'>Item#0</div>
+									<div className='col-auto'><button className='btn btn-sm btn-secondary' onClick={() => setShowDataDebug(false)}>X</button></div>
+								</div>
+								<pre className='bg-dark p-4' style={{ fontSize: '.7rem' }}><code>{JSON.stringify(redditImages && redditImages[0] ? redditImages[0] : '', null, 2)}</code></pre>
+							</div>}
+						</div>
 					}
 				</section>
 			</main>
