@@ -253,18 +253,16 @@ export default function AppMain() {
 							<div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div>
 						</div>
 						:
-						<div className='row'>
-							<div className='col'>
-								<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
-							</div>
-							{showDataDebug && <div className='col'>
-								<div className='row align-items-center'>
+						<div>
+							<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
+							{showDataDebug && <section className='p-4'>
+								<div className='row align-items-center mb-3 p-3 bg-dark'>
 									<div className='col'><h6 className='mb-0'>reddit post object</h6></div>
 									<div className='col-auto'>Item#0</div>
 									<div className='col-auto'><button className='btn btn-sm btn-secondary' onClick={() => setShowDataDebug(false)}>X</button></div>
 								</div>
 								<pre className='bg-dark p-4' style={{ fontSize: '.7rem' }}><code>{JSON.stringify(redditImages && redditImages[0] ? redditImages[0] : '', null, 2)}</code></pre>
-							</div>}
+							</section>}
 						</div>
 					}
 				</section>

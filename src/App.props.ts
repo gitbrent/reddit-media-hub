@@ -11,6 +11,7 @@ export enum OPT_PAGESIZE {
 
 export const RedditSubs = {
 	cityporn: 'CityPorn',
+	dankmemes: 'DankMemes',
 	itookapicture: 'ITookAPicture',
 	memes: 'memes',
 	pics: 'pics',
