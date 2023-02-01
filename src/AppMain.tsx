@@ -1,22 +1,22 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType, IRedditImage } from './App.props'
+import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType, IRedditImage, GridSizes, IGridSize } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
 	//const thumbSizes = {  } // TODO: we need to pass to ImageGrid for css max etc
-	const [pagingSize, setPagingSize] = useState(12)
+	const [pagingSize, setPagingSize] = useState(16)
 	const [pagingPage, setPagingPage] = useState(1)
 	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps16)
 	const [optSchWord, setOptSchWord] = useState('')
-	const [optShowCap, setOptShowCap] = useState(false)
-	const [optThumbSize, setOptThumbSize] = useState(1)
+	const [optShowCap, setOptShowCap] = useState(false) // TODO: add option
 	const [isLoading, setIsLoading] = useState(false)
 	const [showDataDebug, setShowDataDebug] = useState(false)
 	//
 	//const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
 	const [selRedditSub, setSelRedditSub] = useState<string>(RedditSubs.memes)
 	const [selSortType, setSelSortType] = useState<string>(SortType.top)
+	const [selGridSize, setSelGridSize] = useState<IGridSize>(GridSizes[1])
 	const [redditImages, setRedditImages] = useState<IRedditImage[]>([])
 
 	/** fetch subreddit images */
@@ -83,8 +83,8 @@ export default function AppMain() {
 							galleryThumbW: thumbWidth,
 							galleryThumbH: thumbHeight,
 							galleryOrigUrl: origUrl,
-							galleryOrigW: origWidth,
 							galleryOrigH: origHeight,
+							galleryOrigW: origWidth,
 						})
 
 						console.log('thumbWidth', thumbWidth);
@@ -112,17 +112,16 @@ export default function AppMain() {
 			//.filter((item)=>{ return !optSchWord || item.name.toLowerCase().indexOf(optSchWord.toLowerCase()) > -1 }) // FUTURE: suport searches
 			.filter((_item, idx) => { return idx >= ((pagingPage - 1) * pagingSize) && idx <= ((pagingPage * pagingSize) - 1) })
 			.map((item) => {
+				// Set largest thumbnail possible as grid looks shitty with small images (esp. landscape)
 				if (item.preview?.images[0]?.resolutions) {
-					if (item.preview.images[0].resolutions.length >= optThumbSize) {
-						const resLevel = item.preview.images[0].resolutions[optThumbSize]
-						item.galleryThumbUrl = resLevel.url.replace(/&amp;/gi, '&')
-						item.galleryThumbH = resLevel.height
-						item.galleryThumbW = resLevel.width
-					}
+					const largestPrev = item.preview.images[0].resolutions[item.preview.images[0].resolutions.length - 1]
+					item.galleryThumbUrl = largestPrev.url.replace(/&amp;/gi, '&')
+					item.galleryThumbH = largestPrev.height
+					item.galleryThumbW = largestPrev.width
 				}
 				return item
 			})
-	}, [redditImages, pagingPage, pagingSize, optThumbSize])
+	}, [redditImages, pagingPage, pagingSize])
 
 	// --------------------------------------------------------------------------------------------
 
@@ -179,6 +178,16 @@ export default function AppMain() {
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps16} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps16)}>{OPT_PAGESIZE.ps16}</button></li>
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps24} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps24)}>{OPT_PAGESIZE.ps24}</button></li>
 									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps48} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps48)}>{OPT_PAGESIZE.ps48}</button></li>
+								</ul>
+							</li>
+							<li className="nav-item dropdown" data-desc="opt-gridsize">
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{selGridSize.title}</a>
+								<ul className="dropdown-menu">
+									{GridSizes.map((item, idx) => {
+										return (<li key={`gsize${idx}`}>
+											<button className="dropdown-item" disabled={selGridSize === item} onClick={() => setSelGridSize(item)}>{item.title}</button>
+										</li>)
+									})}
 								</ul>
 							</li>
 							{document.location.hostname === 'localhost' &&
@@ -254,7 +263,7 @@ export default function AppMain() {
 						</div>
 						:
 						<div>
-							<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} />
+							<ImageGrid imagePosts={showFiles} isShowCap={optShowCap} selGridSize={selGridSize} />
 							{showDataDebug && <section className='p-4'>
 								<div className='row align-items-center mb-3 p-3 bg-dark'>
 									<div className='col'><h6 className='mb-0'>reddit post object</h6></div>

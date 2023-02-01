@@ -25,15 +25,13 @@ export const SortType = {
 	top: 'top',
 }
 
-// ???
-export enum DelayTime {
-	sec05 = '5',
-	sec10 = '10',
-	sec15 = '15',
-	sec30 = '30',
-	sec60 = '60',
-	secNo = 'None',
-}
+export interface IGridSize { title: string, css: string }
+export const GridSizes: IGridSize[] = [
+	{ title: 'sm', css: '4rem' },
+	{ title: 'md', css: '8rem' },
+	{ title: 'lg', css: '12rem' },
+	{ title: 'xl', css: '16rem' },
+]
 
 // ----------------------------------------------------------------------------
 
