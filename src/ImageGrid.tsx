@@ -11,7 +11,7 @@ interface IProps {
 }
 
 export default function ImageGrid(props: IProps) {
-	const THUMB_SIZE = 216;// 140;
+	const THUMB_SIZE = 10;// 140;
 	//const gridStyle = `repeat(auto-fill, ${THUMB_SIZE}px)`
 	//const gridStyle = `repeat(auto-fill, minmax(${THUMB_SIZE}px, 1fr))`
 
@@ -35,16 +35,18 @@ export default function ImageGrid(props: IProps) {
 
 	return galleryItems && galleryItems.length > 0 ? (
 		<Gallery id="galleryItems" withCaption={props.isShowCap}>
-			<div className="grid" style={{ gridTemplateColumns: `repeat(auto-fill, ${THUMB_SIZE}px)` }}>
+			<div className="grid" style={{ gridTemplateColumns: `repeat(auto-fill, minMax(${THUMB_SIZE}rem, 1fr)` }}>
 				{galleryItems.map((item) => (<Item {...item} key={item.id}>
 					{({ ref, open }) => (
-						<img ref={ref as React.MutableRefObject<HTMLImageElement>}
-							onClick={open}
-							src={item.thumbnail}
-							alt={item.alt}
-							data-orig={item.original}
-							style={{ maxHeight: `${THUMB_SIZE}px` }}
-						/>
+						<figure className={item.width > item.height ? 'landscape' : ''}>
+							<img ref={ref as React.MutableRefObject<HTMLImageElement>}
+								onClick={open}
+								src={item.thumbnail}
+								alt={item.alt}
+								//style={{ maxHeight: `${THUMB_SIZE}px` }}
+							/>
+							{/* <figcaption>{item.caption}</figcaption> */}
+						</figure>
 					)}
 				</Item>
 				))}
