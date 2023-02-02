@@ -1,22 +1,19 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useMemo, useState } from 'react'
-import { OPT_PAGESIZE, IRedditPost, RedditSubs, SortType, IRedditImage, GridSizes, IGridSize } from './App.props'
+import { IRedditPost, RedditSubs, RedditSort, IRedditImage, GridSizes, IGridSize, PageSizes, IPageSize } from './App.props'
 import ImageGrid from './ImageGrid'
 
 export default function AppMain() {
-	//const thumbSizes = {  } // TODO: we need to pass to ImageGrid for css max etc
-	const [pagingSize, setPagingSize] = useState(16)
 	const [pagingPage, setPagingPage] = useState(1)
-	const [optPgeSize, setOptPgeSize] = useState(OPT_PAGESIZE.ps16)
 	const [optSchWord, setOptSchWord] = useState('')
-	const [optShowCap, setOptShowCap] = useState(false) // TODO: add option
+	const [optShowCap, setOptShowCap] = useState(true) // TODO: add option
 	const [isLoading, setIsLoading] = useState(false)
 	const [showDataDebug, setShowDataDebug] = useState(false)
 	//
-	//const [selDelaySecs, setSelDelaySecs] = useState<DelayTime | string>(DelayTime.secNo)
 	const [selRedditSub, setSelRedditSub] = useState<string>(RedditSubs.memes)
-	const [selSortType, setSelSortType] = useState<string>(SortType.top)
+	const [selSortType, setSelSortType] = useState<string>(RedditSort.top)
 	const [selGridSize, setSelGridSize] = useState<IGridSize>(GridSizes[1])
+	const [selPageSize, setSelPageSize] = useState<IPageSize>(PageSizes[1])
 	const [redditImages, setRedditImages] = useState<IRedditImage[]>([])
 
 	/** fetch subreddit images */
@@ -100,17 +97,10 @@ export default function AppMain() {
 			})
 	}, [selRedditSub, selSortType])
 
-	useEffect(() => {
-		if (optPgeSize === OPT_PAGESIZE.ps08) setPagingSize(8)
-		else if (optPgeSize === OPT_PAGESIZE.ps16) setPagingSize(16)
-		else if (optPgeSize === OPT_PAGESIZE.ps24) setPagingSize(24)
-		else if (optPgeSize === OPT_PAGESIZE.ps48) setPagingSize(48)
-	}, [optPgeSize])
-
 	const showFiles = useMemo(() => {
 		return redditImages
 			//.filter((item)=>{ return !optSchWord || item.name.toLowerCase().indexOf(optSchWord.toLowerCase()) > -1 }) // FUTURE: suport searches
-			.filter((_item, idx) => { return idx >= ((pagingPage - 1) * pagingSize) && idx <= ((pagingPage * pagingSize) - 1) })
+			.filter((_item, idx) => { return idx >= ((pagingPage - 1) * selPageSize.size) && idx <= ((pagingPage * selPageSize.size) - 1) })
 			.map((item) => {
 				// Set largest thumbnail possible as grid looks shitty with small images (esp. landscape)
 				if (item.preview?.images[0]?.resolutions) {
@@ -121,7 +111,7 @@ export default function AppMain() {
 				}
 				return item
 			})
-	}, [redditImages, pagingPage, pagingSize])
+	}, [pagingPage, redditImages, selPageSize])
 
 	// --------------------------------------------------------------------------------------------
 
@@ -148,10 +138,10 @@ export default function AppMain() {
 					</button>
 					<div className="collapse navbar-collapse" id="navbarSupportedContent">
 						<ul className="navbar-nav me-auto mb-2 mb-lg-0" data-desc="option-dropdowns">
-							<li className="nav-item">
+							<li className="nav-item" data-desc="home">
 								<a className="nav-link active" aria-current="page" href="/">Home</a>
 							</li>
-							<li className="nav-item dropdown" data-desc="opt-subreddit">
+							<li className="nav-item dropdown" data-desc="sel-subreddit">
 								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">r/{selRedditSub}</a>
 								<ul className="dropdown-menu">
 									{Object.keys(RedditSubs).map((subName, idx) => {
@@ -161,33 +151,35 @@ export default function AppMain() {
 									})}
 								</ul>
 							</li>
-							<li className="nav-item dropdown" data-desc="opt-sortby">
+							<li className="nav-item dropdown" data-desc="sort-type">
 								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{selSortType}</a>
 								<ul className="dropdown-menu">
-									{Object.keys(SortType).map((sortName, idx) => {
+									{Object.keys(RedditSort).map((sortName, idx) => {
 										return (<li key={`sort${idx}`}>
 											<button className="dropdown-item" disabled={selSortType === sortName} onClick={() => setSelSortType(sortName)}>{sortName}</button>
 										</li>)
 									})}
 								</ul>
 							</li>
-							<li className="nav-item dropdown" data-desc="opt-pagesize">
-								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{optPgeSize}</a>
+							<li className="nav-item dropdown" data-desc="grid-options">
+								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Grid Options</a>
 								<ul className="dropdown-menu">
-									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps08} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps08)}>{OPT_PAGESIZE.ps08}</button></li>
-									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps16} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps16)}>{OPT_PAGESIZE.ps16}</button></li>
-									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps24} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps24)}>{OPT_PAGESIZE.ps24}</button></li>
-									<li><button className="dropdown-item" disabled={optPgeSize === OPT_PAGESIZE.ps48} onClick={() => setOptPgeSize(OPT_PAGESIZE.ps48)}>{OPT_PAGESIZE.ps48}</button></li>
-								</ul>
-							</li>
-							<li className="nav-item dropdown" data-desc="opt-gridsize">
-								<a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">{selGridSize.title}</a>
-								<ul className="dropdown-menu">
+									<li><h6 className="dropdown-header">Grid Size</h6></li>
 									{GridSizes.map((item, idx) => {
-										return (<li key={`gsize${idx}`}>
+										return (<li key={`gridsize${idx}`}>
 											<button className="dropdown-item" disabled={selGridSize === item} onClick={() => setSelGridSize(item)}>{item.title}</button>
 										</li>)
 									})}
+									<li><hr className="dropdown-divider" /></li>
+									<li><h6 className="dropdown-header">Page Size</h6></li>
+									{PageSizes.map((item, idx) => {
+										return (<li key={`pagesize${idx}`}>
+											<button className="dropdown-item" disabled={selPageSize === item} onClick={() => setSelPageSize(item)}>{item.title}</button>
+										</li>)
+									})}
+									<li><hr className="dropdown-divider" /></li>
+									<li><h6 className="dropdown-header">Captions</h6></li>
+									<li><button className="dropdown-item" onClick={() => setOptShowCap(!optShowCap)}>{optShowCap ? 'Show Captions' : 'Hide Captions'}</button></li>
 								</ul>
 							</li>
 							{document.location.hostname === 'localhost' &&

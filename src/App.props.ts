@@ -1,13 +1,4 @@
-export enum OPT_PAGESIZE {
-	ps08 = '8 posts',
-	ps16 = '16 posts',
-	ps24 = '24 posts',
-	ps48 = '48 posts',
-}
-
 // gridGap: '1rem', MED (LG = 2rem, 0=0)
-
-// ----------------------------------------------------------------------------
 
 export const RedditSubs = {
 	cityporn: 'CityPorn',
@@ -17,7 +8,7 @@ export const RedditSubs = {
 	pics: 'pics',
 }
 
-export const SortType = {
+export const RedditSort = {
 	controversial: 'controversial',
 	hot: 'hot',
 	new: 'new',
@@ -25,12 +16,22 @@ export const SortType = {
 	top: 'top',
 }
 
+// ----------------------------------------------------------------------------
+
+export interface IPageSize { title: string, size: number }
+export const PageSizes: IPageSize[] = [
+	{ title: '8 posts', size: 8 },
+	{ title: '16 posts', size: 16 },
+	{ title: '24 posts', size: 24 },
+	{ title: '48 posts', size: 48 },
+]
+
 export interface IGridSize { title: string, css: string }
 export const GridSizes: IGridSize[] = [
-	{ title: 'sm', css: '4rem' },
-	{ title: 'md', css: '8rem' },
-	{ title: 'lg', css: '12rem' },
-	{ title: 'xl', css: '16rem' },
+	{ title: '4 (sml)', css: '4rem' },
+	{ title: '8 (med)', css: '8rem' },
+	{ title: '12 (lg)', css: '12rem' },
+	{ title: '16 (xl)', css: '16rem' },
 ]
 
 // ----------------------------------------------------------------------------
