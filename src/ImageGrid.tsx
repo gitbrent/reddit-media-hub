@@ -23,7 +23,6 @@ export default function ImageGrid(props: IProps) {
 				thumbnail: post.galleryThumbUrl,
 				width: post.galleryOrigW,
 				height: post.galleryOrigH,
-				cropped: false, // TODO: add option [[doesnt seem to do anything?]]
 			})
 		})
 

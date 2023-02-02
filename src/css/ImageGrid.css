@@ -5,12 +5,17 @@
 	/*grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));*/
 	align-items: end;
 	/*justify-items: center;*/
+	transition: all .2s ease-in-out;
 }
 
 .grid img {
 	border: 1px solid rgba(0, 0, 0, 0.3);
 	box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.8);
 	margin: auto;
+}
+
+.grid img:hover {
+	transform: scale(1.05);
 }
 
 /* @see https://codepen.io/rachelandrew/pen/QWEmPMK */
