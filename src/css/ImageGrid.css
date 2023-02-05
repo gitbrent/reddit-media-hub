@@ -10,12 +10,14 @@
 
 .grid img {
 	border: 1px solid rgba(0, 0, 0, 0.3);
-	box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.8);
+	/*box-shadow: 2px 2px 6px 0px rgba(0, 0, 0, 0.8);*/
+	box-shadow: 3px 3px 6px 2px rgb(0 0 0 / 50%);
 	margin: auto;
 }
 
 .grid img:hover {
 	transform: scale(1.05);
+	box-shadow: 2px 2px 4px 1px rgb(0 0 0 / 50%);
 }
 
 /* @see https://codepen.io/rachelandrew/pen/QWEmPMK */
